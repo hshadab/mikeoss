@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
+import { preflightVerify } from "../middleware/preflight";
 import { createServerSupabase } from "../lib/supabase";
 import {
     buildDocContext,
@@ -420,7 +421,9 @@ chatRouter.post("/:chatId/generate-title", requireAuth, async (req, res) => {
 });
 
 // POST /chat — streaming
-chatRouter.post("/", requireAuth, async (req, res) => {
+// ICME Preflight verifies the proposed action against a policy before the
+// LLM call; see backend/src/middleware/preflight.ts.
+chatRouter.post("/", requireAuth, preflightVerify, async (req, res) => {
     const userId = res.locals.userId as string;
     const body =
         req.body && typeof req.body === "object" && !Array.isArray(req.body)
@@ -580,11 +583,23 @@ chatRouter.post("/", requireAuth, async (req, res) => {
         });
 
         const annotations = extractAnnotations(fullText, docIndex, events);
+        const preflightCheck = res.locals.preflightCheck as
+            | {
+                  check_id: string;
+                  verdict: string;
+                  policy_id: string;
+                  policy_version?: string;
+              }
+            | undefined;
         await db.from("chat_messages").insert({
             chat_id: chatId,
             role: "assistant",
             content: events.length ? events : null,
             annotations: annotations.length ? annotations : null,
+            preflight_check_id: preflightCheck?.check_id ?? null,
+            preflight_verdict: preflightCheck?.verdict ?? null,
+            preflight_policy_id: preflightCheck?.policy_id ?? null,
+            preflight_policy_version: preflightCheck?.policy_version ?? null,
         });
 
         if (!chatTitle && lastUser?.content) {
