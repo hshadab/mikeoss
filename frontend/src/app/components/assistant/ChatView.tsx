@@ -543,6 +543,7 @@ export function ChatView({
                                                 resolvedEditStatuses={
                                                     resolvedEditStatuses
                                                 }
+                                                preflight={(msg as any).preflight}
                                             />
                                         )}
                                     </div>

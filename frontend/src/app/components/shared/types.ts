@@ -142,6 +142,13 @@ export type AssistantEvent =
     }
   | { type: "content"; text: string; isStreaming?: boolean };
 
+export interface MikePreflightInfo {
+  check_id: string | null;
+  verdict: "SAT" | "UNSAT" | "ERROR" | null;
+  policy_id?: string | null;
+  policy_version?: string | null;
+}
+
 export interface MikeMessage {
   role: "user" | "assistant";
   content: string;
@@ -152,6 +159,8 @@ export interface MikeMessage {
   events?: AssistantEvent[];
   /** Set when streaming failed; rendered as a red error block. */
   error?: string;
+  /** ICME Preflight proof receipt for this assistant message. */
+  preflight?: MikePreflightInfo;
 }
 
 export interface CitationQuote {

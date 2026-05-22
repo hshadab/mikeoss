@@ -28,6 +28,11 @@ interface ServerMessage {
     workflow?: { id: string; title: string } | null;
     annotations?: MikeCitationAnnotation[] | null;
     created_at: string;
+    // ICME Preflight proof receipt fields (assistant rows only)
+    preflight_check_id?: string | null;
+    preflight_verdict?: "SAT" | "UNSAT" | "ERROR" | null;
+    preflight_policy_id?: string | null;
+    preflight_policy_version?: string | null;
 }
 interface ServerChatDetailOut {
     chat: MikeChat;
@@ -462,6 +467,14 @@ export async function getChat(chatId: string): Promise<MikeChatDetailOut> {
                     .join("") ?? "",
             annotations: m.annotations ?? undefined,
             events,
+            preflight: m.preflight_check_id
+                ? {
+                      check_id: m.preflight_check_id,
+                      verdict: m.preflight_verdict ?? null,
+                      policy_id: m.preflight_policy_id ?? null,
+                      policy_version: m.preflight_policy_version ?? null,
+                  }
+                : undefined,
         };
     });
     return { chat: raw.chat, messages };

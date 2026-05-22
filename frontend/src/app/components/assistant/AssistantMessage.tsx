@@ -13,9 +13,11 @@ import type {
     AssistantEvent,
     MikeCitationAnnotation,
     MikeEditAnnotation,
+    MikePreflightInfo,
 } from "../shared/types";
 import { EditCard, applyOptimisticResolution } from "./EditCard";
 import { PreResponseWrapper } from "../shared/PreResponseWrapper";
+import { VerifiedBadge } from "./VerifiedBadge";
 import { supabase } from "@/lib/supabase";
 
 function toolCallLabel(name: string): string {
@@ -1065,6 +1067,8 @@ interface Props {
      * edits flip their per-card UI without per-card clicks.
      */
     resolvedEditStatuses?: Record<string, "accepted" | "rejected">;
+    /** ICME Preflight proof receipt — renders the "Verified" pill. */
+    preflight?: MikePreflightInfo;
 }
 
 export function AssistantMessage({
@@ -1085,6 +1089,7 @@ export function AssistantMessage({
     isDocReloading,
     isEditReloading,
     resolvedEditStatuses,
+    preflight,
 }: Props) {
     const messageKey = useId();
     const contentDivRef = useRef<HTMLDivElement | null>(null);
@@ -1353,7 +1358,10 @@ export function AssistantMessage({
 
     return (
         <div style={{ minHeight }}>
-            <ResponseStatus status={status} />
+            <div className="flex items-center gap-2">
+                <ResponseStatus status={status} />
+                {preflight ? <VerifiedBadge info={preflight} /> : null}
+            </div>
             <div className="w-full font-inter relative mt-2">
                 {events && events.length > 0 ? (
                     <div className="flex flex-col gap-4">
